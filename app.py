@@ -95,7 +95,7 @@ df.loc[~has_dash, 'Album Release Date'] = df.loc[~has_dash, 'Album Release Date'
 df['Album Release Date'] = pd.to_datetime(df['Album Release Date'], errors='coerce')
 
 range_slider_marks = {str(year): str(year) for year in range(min_release_date, max_release_date + 1, 5)}
-range_slider_marks['2023'] = 2023
+range_slider_marks['2023'] = '2023'
 # build app
 app.layout = html.Div([
     html.Div([
@@ -133,9 +133,7 @@ app.layout = html.Div([
         sort_action="native",
         sort_mode="multi",
         style_table={"overflowX": "auto"},
-    ),
-    dcc.Store(id="range-slider-memory", storage_type='memory')],
-    
+    )]   
 )
 ])
 
@@ -155,7 +153,7 @@ def create_graph(category, selected_years):
         },
         "annotations": [
             {
-                "text": f"No category selected ({category})",
+                "text": "No category selected",
                 "xref": "paper",
                 "yref": "paper",
                 "showarrow": False,
@@ -170,16 +168,14 @@ def create_graph(category, selected_years):
     if category == 'Album Release Date':
         year_rs_df = year_df[(year_df['Album Release Date'] >= selected_years[0]) & (year_df['Album Release Date'] <= selected_years[1])]
         fig = px.histogram(year_rs_df, x="Album Release Date")
-        fig.update_layout(f'({category})',#title_text='Album Release Date Distribution', 
-                          xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
+        fig.update_layout(title_text='Album Release Date Distribution', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
     if category == 'Artist Genres':
         genre_counts_adjusted = genre_counts.drop(genre_counts[genre_counts.Count <= 2].index)
         fig = px.bar(genre_counts_adjusted, x='Genre', y='Count', text='Count')
-        fig.update_layout(f'({category})',#title_text='Genre Popularity', 
-                          xaxis_title='Genre', yaxis_title='Count')
+        fig.update_layout(title_text='Genre Popularity', xaxis_title='Genre', yaxis_title='Count')
     if category == 'Explicit':
         fig = px.pie(explicit_counts, names='Explicit', values='Count', title='Distribution of Explicit Songs', labels={'true': 'Explicit', 'false': 'Clean'})
-        fig.update_layout(f'({category})')#title_text='Distribution of Explicity')
+        fig.update_layout(title_text='Distribution of Explicity')
     if category == 'Track Duration (s)':
         Q1 = df['Track Duration (s)'].quantile(0.25)
         Q3 = df['Track Duration (s)'].quantile(0.75)
@@ -188,8 +184,7 @@ def create_graph(category, selected_years):
         track_duration_df = df[(df['Track Duration (s)'] <= upper_bound)]
         track_duration_rs_df = track_duration_df[(track_duration_df['Album Release Date'].dt.year >= selected_years[0]) & (track_duration_df['Album Release Date'].dt.year <= selected_years[1])]
         fig = px.histogram(track_duration_rs_df, x='Track Duration (s)')
-        fig.update_layout(f'({category})', #title_text='Track Duration Distribution', 
-                          xaxis_title='Track Duration (s)', yaxis_title='Count')
+        fig.update_layout(title_text='Track Duration Distribution', xaxis_title='Track Duration (s)', yaxis_title='Count')
     if category == 'Track Name':
         rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
         Q1 = rs_df['Track Duration (s)'].quantile(0.25)
@@ -198,8 +193,7 @@ def create_graph(category, selected_years):
         upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
         track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
         fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Track Name', opacity=0.5)
-        fig.update_layout(f'({category})',#title_text='Tracks', 
-                          xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
+        fig.update_layout(title_text='Tracks', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
     if category == 'Album Name':
         rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
         Q1 = rs_df['Track Duration (s)'].quantile(0.25)
@@ -208,8 +202,7 @@ def create_graph(category, selected_years):
         upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
         track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
         fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Album Name', opacity=0.5)
-        fig.update_layout(title_text=f'({category})',#title_text='Albums', 
-                          xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
+        fig.update_layout(title_text='Albums', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
 
     # Condition not being met for Artist Name in dropdown for some reason
     if category == 'Artist Name(s)':
@@ -219,7 +212,7 @@ def create_graph(category, selected_years):
         IQR = Q3 - Q1
         upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
         track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
-        fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Artist Name', opacity=0.5)
+        fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Artist Name(s)', opacity=0.5)
         fig.update_layout(title_text='Artists', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
 
 
