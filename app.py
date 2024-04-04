@@ -18,7 +18,7 @@ server=app.server
 category_options = [{'label': col, 'value': col} for col in df.columns[1:]]
 category_options[1]['label'] = 'Artist Name' # Change from name(s) to name
 category_options[1]['value'] = 'Artist Name'
-category_options.remove('Popularity')
+category_options.remove({'label': 'Popularity', 'value': 'Popularity'})
 
 track_name_options = [{'label': item, 'value': item} for item in pd.unique(df['Track Name'])]
 
