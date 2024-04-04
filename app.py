@@ -154,6 +154,7 @@ def create_graph(category, selected_years):
         "annotations": [
             {
                 "text": "No category selected",
+                "text": "No Category Selected",
                 "xref": "paper",
                 "yref": "paper",
                 "showarrow": False,
