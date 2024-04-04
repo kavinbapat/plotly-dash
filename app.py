@@ -127,7 +127,7 @@ app.layout = html.Div([
             min=min_release_date,
             max=max_release_date,
             value=[min_release_date, max_release_date],
-            marks={str(year): str(year) for year in range(min_release_date, max_release_date + 1)},
+            marks={str(year): str(year) for year in range(min_release_date, max_release_date + 1, 5)},
             step=None
         ),
     ]),
