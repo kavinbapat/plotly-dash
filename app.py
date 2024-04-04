@@ -17,6 +17,8 @@ server=app.server
 
 category_options = [{'label': col, 'value': col} for col in df.columns[1:]]
 category_options[1]['label'] = 'Artist Name' # Change from name(s) to name
+category_options[1]['value'] = 'Artist Name'
+category_options.remove('Popularity')
 
 track_name_options = [{'label': item, 'value': item} for item in pd.unique(df['Track Name'])]
 
@@ -206,7 +208,7 @@ def create_graph(category, selected_years):
         fig.update_layout(title_text='Albums', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
 
     # Condition not being met for Artist Name in dropdown for some reason
-    if category == 'Artist Name(s)':
+    if category == 'Artist Name':
         rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
         Q1 = rs_df['Track Duration (s)'].quantile(0.25)
         Q3 = rs_df['Track Duration (s)'].quantile(0.75)
