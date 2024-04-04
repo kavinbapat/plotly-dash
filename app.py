@@ -94,6 +94,8 @@ has_dash = df['Album Release Date'].str.contains("-")
 df.loc[~has_dash, 'Album Release Date'] = df.loc[~has_dash, 'Album Release Date'].str.split('.').str[0] + "-01-01"
 df['Album Release Date'] = pd.to_datetime(df['Album Release Date'], errors='coerce')
 
+range_slider_marks = {str(year): str(year) for year in range(min_release_date, max_release_date + 1, 5)}
+range_slider_marks['2023'] = 2023
 # build app
 app.layout = html.Div([
     html.Div([
@@ -119,7 +121,7 @@ app.layout = html.Div([
             min=min_release_date,
             max=max_release_date,
             value=[min_release_date, max_release_date],
-            marks={str(year): str(year) for year in range(min_release_date, max_release_date + 1, 5)},
+            marks=range_slider_marks,
             step=None
         ),
     ]),
@@ -153,7 +155,7 @@ def create_graph(category, selected_years):
         },
         "annotations": [
             {
-                "text": "No category selected",
+                "text": f"No category selected ({category})",
                 "xref": "paper",
                 "yref": "paper",
                 "showarrow": False,
