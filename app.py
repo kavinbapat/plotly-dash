@@ -130,7 +130,7 @@ app.layout = html.Div([
     html.Div([
         dash_table.DataTable(
         df.to_dict('records'),
-        [{"name": df.columns[i], "id": df.columns[i]} for i in range(1,len(df.columns))],
+        [{"name": df.columns[i], "id": df.columns[i]} for i in range(len(df.columns))],
         filter_action="native",
         sort_action="native",
         sort_mode="multi",
