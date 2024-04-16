@@ -6,7 +6,7 @@ import plotly.express as px
 from dash.dependencies import Input, Output, State
 
 # read in data
-df = pd.read_csv('data.csv')
+df = pd.read_csv('data/data.csv')
 
 # get stylesheet
 stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css'] # load the CSS stylesheet
