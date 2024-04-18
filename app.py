@@ -122,6 +122,14 @@ app.layout = html.Div([
     ], className='row'),
     html.Div([
         dcc.Graph(id='graph-output'),
+        dcc.Checklist(
+        id='popularity-checkbox',
+        options=[
+            {'label': 'Include tracks with popularity of 0', 'value': 'yes'},
+        ],
+        value=[],  # Initial selected values
+        labelStyle={'display': 'block'}  # Display checkboxes in block to appear vertically
+        ),
         dcc.RangeSlider(
             id='year-slider',
             min=min_release_date,
@@ -130,6 +138,9 @@ app.layout = html.Div([
             marks=range_slider_marks,
             step=None
         ),
+    ]),
+    html.Div([
+        dcc.Graph(id='graph-output-2'),
     ]),
     html.Div([
         dash_table.DataTable(
@@ -189,11 +200,76 @@ sorted_genre_df = genre_df.sort_values(by='Count', ascending=False)
 other_row = sorted_genre_df[sorted_genre_df['Genre'] == 'other']
 sorted_genre_df = pd.concat([sorted_genre_df[sorted_genre_df['Genre'] != 'other'], other_row])
 
+popularity_df = df[df['Popularity'] > 0]
+
 
 @app.callback(
     Output('graph-output', 'figure'),
+    Input('year-slider', 'value'),
+    Input('popularity-checkbox', 'value')
+)
+def create_graph(selected_years, show_popularity):
+    if show_popularity:
+        rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
+        fig = px.scatter(rs_df, x='Album Release Date', y='Popularity', hover_name='Track Name', 
+                         hover_data=["Artist Name(s)", "Album Name", "Artist Genres"], color='Artist Genres', opacity=0.5)
+        fig.update_layout(title={
+                'text': "Tracks",
+                'x':0.5,
+                'xanchor': 'center',
+            }, xaxis_title='Album Release Date', yaxis_title='Popularity'
+        )
+        fig.update_layout(
+            hoverlabel=dict(
+                bgcolor="white",
+                font_size=16,
+                font_family="Rockwell"
+            )
+        )
+        fig.add_annotation(
+            xref='paper', yref='paper',  # Positions footnote relative to the edges of the plotting area
+            x=0, y=-0.2,  # Adjust these values to move the footnote position
+            text="*Tracks without 'Popularity' value are set to 0 by default.\nToggle on or off if you want them displayed*",  # Your footnote text here
+            showarrow=False,
+            font=dict(size=12, color="grey"),
+            align="center"
+        )
+    else:
+        rs_df = popularity_df[(popularity_df['Album Release Date'].dt.year >= selected_years[0]) & (popularity_df['Album Release Date'].dt.year <= selected_years[1])]
+        fig = px.scatter(rs_df, x='Album Release Date', y='Popularity', hover_name='Track Name', 
+                         hover_data=["Artist Name(s)", "Album Name", "Artist Genres"], color='Artist Genres', opacity=0.5)
+        fig.update_layout(title={
+                'text': "Tracks",
+                'x':0.5,
+                'xanchor': 'center',
+            }, xaxis_title='Album Release Date', yaxis_title='Popularity'
+        )
+        fig.update_layout(
+            hoverlabel=dict(
+                bgcolor="white",
+                font_size=16,
+                font_family="Rockwell"
+            )
+        )
+        fig.add_annotation(
+            xref='paper', yref='paper',  # Positions footnote relative to the edges of the plotting area
+            x=0, y=-0.2,  # Adjust these values to move the footnote position
+            text="*Tracks without 'Popularity' value are set to 0 by default.\nToggle on or off if you want them displayed*",  # Your footnote text here
+            showarrow=False,
+            font=dict(size=12, color="grey"),
+            align="center"
+        )
+         
+
+    return fig
+
+
+
+'''
+@app.callback(
+    Output('graph-output-2', 'figure'),
     Input('category-dropdown', 'value'),
-    Input('year-slider', 'value')
+    Input('year-slider', 'value'),
 )
 def create_graph(category, selected_years):
     fig = {
@@ -207,7 +283,6 @@ def create_graph(category, selected_years):
         "annotations": [
             {
                 "text": "No category selected",
-                "text": "No Category Selected",
                 "xref": "paper",
                 "yref": "paper",
                 "showarrow": False,
@@ -270,29 +345,9 @@ def create_graph(category, selected_years):
             font=dict(size=12, color="grey"),
             align="center"
         )
-    # if category == 'Album Name':
-    #     rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
-    #     Q1 = rs_df['Track Duration (s)'].quantile(0.25)
-    #     Q3 = rs_df['Track Duration (s)'].quantile(0.75)
-    #     IQR = Q3 - Q1
-    #     upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
-    #     track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
-    #     fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Album Name', opacity=0.5)
-    #     fig.update_layout(title_text='Albums', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
-
-    # Condition not being met for Artist Name in dropdown for some reason
-    # if category == 'Artist Name':
-    #     rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
-    #     Q1 = rs_df['Track Duration (s)'].quantile(0.25)
-    #     Q3 = rs_df['Track Duration (s)'].quantile(0.75)
-    #     IQR = Q3 - Q1
-    #     upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
-    #     track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
-    #     fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Artist Name(s)', opacity=0.5)
-    #     fig.update_layout(title_text='Artists', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
-
 
     return fig
+    '''
 
 # run the Dash app
 if __name__ == '__main__':
