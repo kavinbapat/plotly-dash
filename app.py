@@ -16,9 +16,11 @@ app = Dash(__name__, external_stylesheets=stylesheets)
 server=app.server
 
 category_options = [{'label': col, 'value': col} for col in df.columns[1:]]
-category_options[1]['label'] = 'Artist Name' # Change from name(s) to name
-category_options[1]['value'] = 'Artist Name'
+# category_options[1]['label'] = 'Artist Name' # Change from name(s) to name
+# category_options[1]['value'] = 'Artist Name'
 category_options.remove({'label': 'Popularity', 'value': 'Popularity'})
+category_options.remove({'label': 'Artist Name(s)', 'value': 'Artist Name(s)'})
+category_options.remove({'label': 'Album Name', 'value': 'Album Name'})
 
 track_name_options = [{'label': item, 'value': item} for item in pd.unique(df['Track Name'])]
 
@@ -33,7 +35,7 @@ for val in pd.unique(df['Artist Name(s)']):
     elif {'label': val, 'value': val} not in artist_name_options:
                 artist_name_options.append({'label': val, 'value': val})
 
-df.rename(columns={"Arist Name(s)": "Artist Name"})
+df.rename(columns={"Arist Name(s)": "Artist Name"}, inplace=True)
 
 album_name_options = [{'label': item, 'value': item} for item in pd.unique(df['Album Name'])]
 
@@ -72,10 +74,12 @@ for val in pd.unique(df['Artist Genres']):
 # get rid of useless column (thought I already did but I guess not)
 df.drop(columns=['Unnamed: 0'], inplace=True)
 
+'''
 genres_expanded = df['Artist Genres'].str.split(',').explode()
 # count each genre's occurrence
 genre_counts = genres_expanded.value_counts().reset_index()
 genre_counts.columns = ['Genre', 'Count']
+'''
 
 # change true and false to explicit and clean for graph
 explicit_counts = df['Explicit'].value_counts().reset_index()
@@ -139,6 +143,53 @@ app.layout = html.Div([
 )
 ])
 
+def simplify_genre(genre_list):
+    # Get the first genre in the list
+    first_genre = genre_list.split(',')[0].strip().lower()
+    genre_mappings = {
+        'hip hop': ['hip hop', 'rap', 'drill'],
+        'pop': ['pop'],
+        'rock': ['rock', 'beatlesque'],
+        'jazz': ['jazz'],
+        'blues': ['blues'],
+        'country': ['country'],
+        'folk': ['folk'],
+        'electronic': ['electro', 'house', 'techno', 'edm', 'trance', 'dubstep', 'freestyle', 'big room'],
+        'r&b': ['r&b', 'soul', 'funk'],
+        'reggae': ['reggae', 'dancehall'],
+        'classical': ['classical', 'orchestral', 'opera'],
+        'metal': ['metal', 'death metal', 'heavy metal'],
+        'punk': ['punk', 'hardcore punk', 'emo', 'new romantic'],
+        'latin': ['latin', 'reggaeton', 'salsa'],
+        'world music': ['k-pop', 'afrobeats', 'bollywood', 'celtic', 'australian', 'british', 'german', 'french', 'afrikaans', 
+                        'jamaican', 'belgian', 'irish', ],
+        'indie': ['indie'],
+        'alternative': ['alternative', 'alt rock'],
+        'disco': ['disco'],
+        'dance': ['dance'],
+        'girl': ['girl'],
+        'mellow': ['mellow'],
+        'band': ['band', 'hollywood']
+    }
+    
+    for base_genre, subgenres in genre_mappings.items():
+        if any(sub in first_genre for sub in subgenres):
+            return base_genre
+    
+    # Return the first genre if no simplification matches
+    return 'other'
+    
+df['Artist Genres'] = df['Artist Genres'].apply(simplify_genre)
+genre_counts = df['Artist Genres'].value_counts()
+genre_df = genre_counts.reset_index()
+genre_df.columns = ['Genre', 'Count'] 
+sorted_genre_df = genre_df.sort_values(by='Count', ascending=False)
+
+# Move the 'other' row to the end of the DataFrame
+other_row = sorted_genre_df[sorted_genre_df['Genre'] == 'other']
+sorted_genre_df = pd.concat([sorted_genre_df[sorted_genre_df['Genre'] != 'other'], other_row])
+
+
 @app.callback(
     Output('graph-output', 'figure'),
     Input('category-dropdown', 'value'),
@@ -173,8 +224,9 @@ def create_graph(category, selected_years):
         fig = px.histogram(year_rs_df, x="Album Release Date")
         fig.update_layout(title_text='Album Release Date Distribution', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
     if category == 'Artist Genres':
-        genre_counts_adjusted = genre_counts.drop(genre_counts[genre_counts.Count <= 2].index)
-        fig = px.bar(genre_counts_adjusted, x='Genre', y='Count', text='Count')
+        #genre_counts_adjusted = genre_counts.drop(genre_counts[genre_counts.Count <= 2].index)
+        #fig = px.bar(genre_counts_adjusted, x='Genre', y='Count', text='Count')
+        fig = px.bar(sorted_genre_df, x='Genre', y='Count', text='Count')
         fig.update_layout(title_text='Genre Popularity', xaxis_title='Genre', yaxis_title='Count')
     if category == 'Explicit':
         fig = px.pie(explicit_counts, names='Explicit', values='Count', title='Distribution of Explicit Songs', labels={'true': 'Explicit', 'false': 'Clean'})
@@ -190,33 +242,54 @@ def create_graph(category, selected_years):
         fig.update_layout(title_text='Track Duration Distribution', xaxis_title='Track Duration (s)', yaxis_title='Count')
     if category == 'Track Name':
         rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
-        Q1 = rs_df['Track Duration (s)'].quantile(0.25)
-        Q3 = rs_df['Track Duration (s)'].quantile(0.75)
-        IQR = Q3 - Q1
-        upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
-        track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
-        fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Track Name', opacity=0.5)
-        fig.update_layout(title_text='Tracks', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
-    if category == 'Album Name':
-        rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
-        Q1 = rs_df['Track Duration (s)'].quantile(0.25)
-        Q3 = rs_df['Track Duration (s)'].quantile(0.75)
-        IQR = Q3 - Q1
-        upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
-        track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
-        fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Album Name', opacity=0.5)
-        fig.update_layout(title_text='Albums', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
+        # Q1 = rs_df['Track Duration (s)'].quantile(0.25)
+        # Q3 = rs_df['Track Duration (s)'].quantile(0.75)
+        # IQR = Q3 - Q1
+        # upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
+        # track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
+        fig = px.scatter(rs_df, x='Album Release Date', y='Popularity', hover_name='Track Name', 
+                         hover_data=["Artist Name(s)", "Album Name", "Artist Genres"], color='Artist Genres', opacity=0.5)
+        fig.update_layout(title={
+                'text': "Tracks",
+                'x':0.5,
+                'xanchor': 'center',
+            }, xaxis_title='Album Release Date', yaxis_title='Popularity'
+        )
+        fig.update_layout(
+            hoverlabel=dict(
+                bgcolor="white",
+                font_size=16,
+                font_family="Rockwell"
+            )
+        )
+        fig.add_annotation(
+            xref='paper', yref='paper',  # Positions footnote relative to the edges of the plotting area
+            x=0, y=-0.2,  # Adjust these values to move the footnote position
+            text="*Tracks without 'Popularity' value are set to 0 by default.\nToggle on or off if you want them displayed*",  # Your footnote text here
+            showarrow=False,
+            font=dict(size=12, color="grey"),
+            align="center"
+        )
+    # if category == 'Album Name':
+    #     rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
+    #     Q1 = rs_df['Track Duration (s)'].quantile(0.25)
+    #     Q3 = rs_df['Track Duration (s)'].quantile(0.75)
+    #     IQR = Q3 - Q1
+    #     upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
+    #     track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
+    #     fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Album Name', opacity=0.5)
+    #     fig.update_layout(title_text='Albums', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
 
     # Condition not being met for Artist Name in dropdown for some reason
-    if category == 'Artist Name':
-        rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
-        Q1 = rs_df['Track Duration (s)'].quantile(0.25)
-        Q3 = rs_df['Track Duration (s)'].quantile(0.75)
-        IQR = Q3 - Q1
-        upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
-        track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
-        fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Artist Name(s)', opacity=0.5)
-        fig.update_layout(title_text='Artists', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
+    # if category == 'Artist Name':
+    #     rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
+    #     Q1 = rs_df['Track Duration (s)'].quantile(0.25)
+    #     Q3 = rs_df['Track Duration (s)'].quantile(0.75)
+    #     IQR = Q3 - Q1
+    #     upper_bound = Q3 + 1.5 * IQR + 180 # added 180 because lot of longer songs left out doing basic outlier removal
+    #     track_duration_rs_df = rs_df[(rs_df['Track Duration (s)'] <= upper_bound)]
+    #     fig = px.scatter(track_duration_rs_df, x='Album Release Date', y='Track Duration (s)', hover_name='Artist Name(s)', opacity=0.5)
+    #     fig.update_layout(title_text='Artists', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
 
 
     return fig
