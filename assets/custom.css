@@ -10,8 +10,8 @@ h1 {
 }
 
 .Select-menu-outer {
-    width: 100% !important;  /* Ensures that the dropdown menu matches the dropdown control width */
+    width: 100% !important;
 }
 .Select-menu {
-    overflow: hidden;  /* Optional: Ensures no horizontal scrolling */
+    overflow: hidden;
 }

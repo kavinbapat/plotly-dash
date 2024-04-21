@@ -78,8 +78,8 @@ app.layout = html.Div([
                 options=[
                     {'label': 'Include tracks with popularity of 0', 'value': 'yes'},
                 ],  
-                value=[],  # Initial selected values
-                labelStyle={'display': 'block'}  # Display checkboxes in block to appear vertically
+                value=[],
+                labelStyle={'display': 'block'}
             )
         ], style={'marginLeft': '10%', 'font-family': 'Garamond'}),
         dcc.Graph(id='graph-output', style={'width': '80%', 'margin': '0 auto'}),
