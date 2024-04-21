@@ -1,0 +1,17 @@
+.navbar {
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    border-radius: 0 0 5px 5px;
+    background-color: #4CAF50;
+}
+h1 {
+    font-family: 'Roboto', sans-serif;
+    color: rgb(85, 79, 79);
+    font-weight: 700;
+}
+
+.Select-menu-outer {
+    width: 100% !important;  /* Ensures that the dropdown menu matches the dropdown control width */
+}
+.Select-menu {
+    overflow: hidden;  /* Optional: Ensures no horizontal scrolling */
+}

@@ -59,41 +59,62 @@ app.layout = html.Div([
     html.Div([
         html.Nav([
             html.Div([
-                html.H1('Top 10,000 Songs on Spotify Released from 1956-2023', style={'text-align': 'center', 'color': 'black'})
+                html.H1('Top 10,000 Songs on Spotify Released from 1956-2023', style={'text-align': 'center', 'color': 'black', 'font-family': 'Copperplate'})
             ], className='container-fluid')
         ], style={'background-color': 'green'})  
-    ], className='navbar navbar-default', style={'backgroundColor': '#e3faf6'}),
+    ], className='navbar navbar-default',),
     html.Div([
-        dcc.Checklist(
-        id='popularity-checkbox',
-        options=[
-            {'label': 'Include tracks with popularity of 0', 'value': 'yes'},
-        ],  
-        value=[],  # Initial selected values
-        labelStyle={'display': 'block'}  # Display checkboxes in block to appear vertically
-        ),
-        dcc.Graph(id='graph-output'),
-        dcc.RangeSlider(
-            id='year-slider',
-            min=min_release_date,
-            max=max_release_date,
-            value=[min_release_date, max_release_date],
-            marks=range_slider_marks,
-            step=1
-        ),
-    ], style={'backgroundColor': '#e3faf6'}),
+        html.P('Below is a graph displaying every song based on its popularity and release date.', 
+               style={'text-align': 'center', 'color': 'light-blue', 'font-family': 'Garamond', 'font-size': 24})
+    ]),
     html.Div([
-        html.H5('Display Secondary Graph Below:'),
+        html.Div([
+            dcc.Checklist(
+                id='popularity-checkbox',
+                options=[
+                    {'label': 'Include tracks with popularity of 0', 'value': 'yes'},
+                ],  
+                value=[],  # Initial selected values
+                labelStyle={'display': 'block'}  # Display checkboxes in block to appear vertically
+            )
+        ], style={'marginLeft': '10%', 'font-family': 'Garamond'}),
+        dcc.Graph(id='graph-output', style={'width': '80%', 'margin': '0 auto'}),
+        html.Div([
+            dcc.RangeSlider(
+                id='year-slider',
+                min=min_release_date,
+                max=max_release_date,
+                value=[min_release_date, max_release_date],
+                marks=range_slider_marks,
+                step=1,
+            ),
+        ], style={'width': '80%', 'margin': '0 auto'})
+        
+    ],),
+    html.Div([
+        html.H6('Adjust the range of years displayed on the graph', style={'text-align': 'center', 'color': 'light-blue', 'font-family': 'Garamond'})
+    ]),
+    html.Div(style={'border-top': '3px solid #4CAF50', 'width': '100%', 'margin': '20px 0'}),
+    html.Div([
+        html.P('To look at more information regarding the overall distribution of the most popular songs on this site, including genres, track lengths, etc., create a graph using the dropdown below.', 
+               style={'text-align': 'center', 'color': 'light-blue', 'font-family': 'Garamond', 'font-size': 24})
+    ]),
+    html.Div([
+        html.Div([
+            html.H6('Select Graph:', style={'margin-right': '10px', 'font-family': 'Garamond'}),
+        ],style={'display': 'flex', 'alignItems': 'center', 'marginLeft': '10%'}),
         dcc.Dropdown(
-        id='category-dropdown',
-        options=category_options,
-        multi=False,
-        value=[df.columns[0]]
-    ),
-    ], className='row', style={'backgroundColor': '#e3faf6'}),
+            id='category-dropdown',
+            options=category_options,
+            multi=False,
+            value=df.columns[0],  # Assuming df.columns[0] is intended to be the initial selected value
+            style={'width': '50%'}
+        )
+    ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%'}),
     html.Div([
-        dcc.Graph(id='graph-output-2'),
-        dcc.RangeSlider(
+        dcc.Graph(id='graph-output-2', style={'width': '80%', 'margin': '0 auto'}),
+        html.Div([
+            dcc.RangeSlider(
             id='year-slider-2',
             min=min_release_date,
             max=max_release_date,
@@ -101,7 +122,20 @@ app.layout = html.Div([
             marks=range_slider_marks,
             step=1
         ),
-    ], style={'backgroundColor': '#e3faf6'}),
+        ], style={'width': '80%', 'margin': '0 auto'})
+       
+    ],),
+    html.Div([
+        html.H6('Adjust the range of years displayed on the graph', style={'text-align': 'center', 'color': 'light-blue', 'font-family': 'Garamond'})
+    ]),
+    html.Div(style={'border-top': '3px solid #4CAF50', 'width': '100%', 'margin': '20px 0'}),
+    html.Div([
+        html.P('Below is a data table containing all the original information on each of the tracks. Feel free to sort and filter the data using keywords to find the information you are looking for.', 
+               style={'text-align': 'center', 'color': 'light-blue', 'font-family': 'Garamond', 'font-size': 24})
+    ]),
+    html.Div([
+        html.H4('Data Table', style={'text-align': 'center', 'color': 'light-blue', 'font-family': 'Georgia'})
+    ]),
     html.Div([
         dash_table.DataTable(
         df.to_dict('records'),
@@ -110,9 +144,9 @@ app.layout = html.Div([
         sort_action="native",
         sort_mode="multi",
         style_table={"overflowX": "auto"},
-    ), ]   , style={'backgroundColor': '#e3faf6'}
+    ), ]
 )
-], style={'backgroundColor': '#e3faf6'})
+], style={'backgroundColor': '#b5f5bb'})
 
 def simplify_genre(genre_list):
     # simplify genre lists to first genre
@@ -178,13 +212,19 @@ def create_graph(selected_years, show_popularity):
             )
         )
         fig.add_annotation(
-            xref='paper', yref='paper',  # Positions footnote relative to the edges of the plotting area
-            x=0, y=-0.2,  # Adjust these values to move the footnote position
-            text="*Tracks without 'Popularity' value are set to 0 by default. Toggle on or off above if you want them displayed*",  # Your footnote text here
+            xref='paper', yref='paper',
+            x=0, y=-0.2,
+            text="*Tracks without 'Popularity' value are set to 0 by default. Toggle on or off above if you want them displayed*",
             showarrow=False,
             font=dict(size=12, color="grey"),
             align="center"
         )
+        fig.update_layout(
+            xaxis=dict(showgrid=False),  
+            yaxis=dict(showgrid=False) 
+        )
+        fig.update_layout(paper_bgcolor='#b5f5bb', showgrid=False)
+        fig.update_layout(plot_bgcolor='#4df7c4')
     else:
         rs_df = popularity_df[(popularity_df['Album Release Date'].dt.year >= selected_years[0]) & (popularity_df['Album Release Date'].dt.year <= selected_years[1])]
         fig = px.scatter(rs_df, x='Album Release Date', y='Popularity', hover_name='Track Name', 
@@ -203,14 +243,19 @@ def create_graph(selected_years, show_popularity):
             )
         )
         fig.add_annotation(
-            xref='paper', yref='paper',  # Positions footnote relative to the edges of the plotting area
-            x=0, y=-0.2,  # Adjust these values to move the footnote position
-            text="*Tracks without 'Popularity' value are set to 0 by default.\nToggle on or off if you want them displayed*",  # Your footnote text here
+            xref='paper', yref='paper',
+            x=0, y=-0.2,
+            text="*Tracks without 'Popularity' value are set to 0 by default.\nToggle on or off if you want them displayed*",
             showarrow=False,
             font=dict(size=12, color="grey"),
             align="center"
         )
-         
+        fig.update_layout(
+            xaxis=dict(showgrid=False),  
+            yaxis=dict(showgrid=False) 
+        )
+        fig.update_layout(paper_bgcolor='#b5f5bb')
+        fig.update_layout(plot_bgcolor='white')
 
     return fig
 
@@ -238,10 +283,13 @@ def create_graph(category, selected_years):
                 "yref": "paper",
                 "showarrow": False,
                 "font": {
-                    "size": 28
+                    "size": 48,
+                    "family": 'Garamond'
                 }
             }
-        ]
+        ],
+        "plot_bgcolor": "#b5f5bb",
+        "paper_bgcolor": "#b5f5bb"
         }
     }
     
@@ -249,6 +297,18 @@ def create_graph(category, selected_years):
         year_rs_df = year_df[(year_df['Album Release Date'] >= selected_years[0]) & (year_df['Album Release Date'] <= selected_years[1])]
         fig = px.histogram(year_rs_df, x="Album Release Date")
         fig.update_layout(title_text='Album Release Date Distribution', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
+        fig.update_layout(paper_bgcolor='#b5f5bb')
+        fig.update_layout(plot_bgcolor='white')
+        fig.update_layout(
+            xaxis=dict(showgrid=False),  
+            yaxis=dict(showgrid=False) 
+        )
+        fig.update_layout(title={
+                'text': "Album Release Date Distribution",
+                'x':0.5,
+                'xanchor': 'center',
+            }, xaxis_title='Album Release Date', yaxis_title='Track Duration (s)'
+        )
 
     if category == 'Artist Genres':
         rs_df = (df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])
@@ -262,12 +322,44 @@ def create_graph(category, selected_years):
         sorted_genre_counts_rs_df = pd.concat([sorted_genre_counts_rs_df[sorted_genre_counts_rs_df['Artist Genres'] != 'other'], other_row])
 
         fig = px.bar(sorted_genre_counts_rs_df, x='Artist Genres', y='Count', title='Most Popular Genres')
+        fig.update_layout(paper_bgcolor='#b5f5bb')
+        fig.update_layout(plot_bgcolor='white')
+        fig.update_layout(
+            xaxis=dict(showgrid=False),  
+            yaxis=dict(showgrid=False) 
+        )
+        fig.update_layout(title={
+                'text': "Most Popular Genres",
+                'x':0.5,
+                'xanchor': 'center',
+            }, xaxis_title='Genre', yaxis_title='Count'
+        )
+        fig.add_annotation(
+            xref='paper', yref='paper',
+            x=0, y=-0.2,
+            text="*Genres were consolidated into broad categories. Original genre data can be seen in the table below*",
+            showarrow=False,
+            font=dict(size=12, color="grey"),
+            align="center"
+        )
 
     if category == 'Explicit':
         rs_df = (year_df['Album Release Date'] >= selected_years[0]) & (year_df['Album Release Date'] <= selected_years[1])
         explicit_rs_df = df[rs_df]
         counts = explicit_rs_df['Explicit'].value_counts()
         fig = px.pie(counts, values=counts, names=counts.index, title='Explicit vs Non-Explicit Track Percentages')
+        fig.update_layout(paper_bgcolor='#b5f5bb')
+        fig.update_layout(plot_bgcolor='white')
+        fig.update_layout(
+            xaxis=dict(showgrid=False),  
+            yaxis=dict(showgrid=False) 
+        )
+        fig.update_layout(title={
+                'text': "Explicit vs Non-Explicit Track Percentages",
+                'x':0.5,
+                'xanchor': 'center',
+            }
+        )
 
     if category == 'Track Duration (s)':
         Q1 = df['Track Duration (s)'].quantile(0.25)
@@ -277,13 +369,45 @@ def create_graph(category, selected_years):
         track_duration_df = df[(df['Track Duration (s)'] <= upper_bound)]
         track_duration_rs_df = track_duration_df[(track_duration_df['Album Release Date'].dt.year >= selected_years[0]) & (track_duration_df['Album Release Date'].dt.year <= selected_years[1])]
         fig = px.histogram(track_duration_rs_df, x='Track Duration (s)')
-        fig.update_layout(title_text='Track Duration Distribution', xaxis_title='Track Duration (s)', yaxis_title='Count')
+        fig.update_layout(paper_bgcolor='#b5f5bb')
+        fig.update_layout(plot_bgcolor='white')
+        fig.update_layout(
+            xaxis=dict(showgrid=False),  
+            yaxis=dict(showgrid=False) 
+        )
+        fig.update_layout(title={
+                'text': "Track Duration Distribution",
+                'x':0.5,
+                'xanchor': 'center',
+            }, xaxis_title='Track Duration (s)', yaxis_title='Count'
+        )
 
     if category == 'Artist Genres %':
         rs_df = (year_df['Album Release Date'] >= selected_years[0]) & (year_df['Album Release Date'] <= selected_years[1])
         genres_percentage_rs_df = df[rs_df]
         counts = genres_percentage_rs_df['Artist Genres'].value_counts()
         fig = px.pie(counts, values=counts, names=counts.index, title='Distribution of Artist Genres')
+        fig.update_layout(paper_bgcolor='#b5f5bb')
+        fig.update_layout(plot_bgcolor='white')
+        fig.update_layout(
+            xaxis=dict(showgrid=False),  
+            yaxis=dict(showgrid=False) 
+        )
+        fig.update_layout(title={
+                'text': "Distribution of Artist Genres",
+                'x':0.5,
+                'xanchor': 'center',
+            }
+        )
+        fig.add_annotation(
+            xref='paper', yref='paper',
+            x=-.3, y=-.5,
+            text="*Genres were consolidated into broad categories. Original genre data can be seen in the table below*",
+            showarrow=False,
+            font=dict(size=12, color="grey"),
+            align="center"
+        )
+    
     
     return fig
     
