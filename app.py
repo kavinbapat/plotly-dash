@@ -8,6 +8,7 @@ from dash.dependencies import Input, Output, State
 # read in data
 df = pd.read_csv('data/data.csv')
 
+
 # get stylesheet
 stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css'] # load the CSS stylesheet
 
@@ -107,7 +108,7 @@ app.layout = html.Div([
             id='category-dropdown',
             options=category_options,
             multi=False,
-            value=df.columns[0],  # Assuming df.columns[0] is intended to be the initial selected value
+            value=df.columns[0],
             style={'width': '50%'}
         )
     ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%'}),
@@ -143,6 +144,12 @@ app.layout = html.Div([
         filter_action="native",
         sort_action="native",
         sort_mode="multi",
+        style_cell={'textAlign': 'left', 'backgroundColor': '#ffdea3', 'color': 'black'},
+        style_header={
+            'backgroundColor': '#c49d56',
+            'fontWeight': 'bold',
+            'textAlign': 'left'
+        },
         style_table={"overflowX": "auto"},
     ), ]
 )
@@ -186,32 +193,34 @@ def simplify_genre(genre_list):
 df['Artist Genres'] = df['Artist Genres'].apply(simplify_genre)
 
 # only contain tracks where there is a popularity value
-popularity_df = df[df['Popularity'] > 0]
+popularity_df = df.copy()
+popularity_df = popularity_df[popularity_df['Popularity'] > 0]
+
 
 @app.callback(
     Output('graph-output', 'figure'),
     Input('year-slider', 'value'),
     Input('popularity-checkbox', 'value')
 )
-def create_graph(selected_years, show_popularity):
-    if show_popularity:
-        rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
-        fig = px.scatter(rs_df, x='Album Release Date', y='Popularity', hover_name='Track Name', 
+def create_graph_1(selected_years, show_popularity):
+    if len(show_popularity) > 0:
+        pop_rs_df = df[(df['Album Release Date'].dt.year >= selected_years[0]) & (df['Album Release Date'].dt.year <= selected_years[1])]
+        fig_pop = px.scatter(pop_rs_df, x='Album Release Date', y='Popularity', hover_name='Track Name', 
                          hover_data=["Artist Name(s)", "Album Name", "Artist Genres"], color='Artist Genres', opacity=0.5)
-        fig.update_layout(title={
+        fig_pop.update_layout(title={
                 'text': "Tracks",
                 'x':0.5,
                 'xanchor': 'center',
             }, xaxis_title='Album Release Date', yaxis_title='Popularity'
         )
-        fig.update_layout(
+        fig_pop.update_layout(
             hoverlabel=dict(
                 bgcolor="white",
                 font_size=16,
                 font_family="Rockwell"
             )
         )
-        fig.add_annotation(
+        fig_pop.add_annotation(
             xref='paper', yref='paper',
             x=0, y=-0.2,
             text="*Tracks without 'Popularity' value are set to 0 by default. Toggle on or off above if you want them displayed*",
@@ -219,30 +228,32 @@ def create_graph(selected_years, show_popularity):
             font=dict(size=12, color="grey"),
             align="center"
         )
-        fig.update_layout(
+        fig_pop.update_layout(
             xaxis=dict(showgrid=False),  
             yaxis=dict(showgrid=False) 
         )
-        fig.update_layout(paper_bgcolor='#b5f5bb', showgrid=False)
-        fig.update_layout(plot_bgcolor='#4df7c4')
+        fig_pop.update_layout(paper_bgcolor='#b5f5bb')
+        fig_pop.update_layout(plot_bgcolor='#f0fcf4')
+
+        return fig_pop
     else:
-        rs_df = popularity_df[(popularity_df['Album Release Date'].dt.year >= selected_years[0]) & (popularity_df['Album Release Date'].dt.year <= selected_years[1])]
-        fig = px.scatter(rs_df, x='Album Release Date', y='Popularity', hover_name='Track Name', 
+        nopop_rs_df = popularity_df[(popularity_df['Album Release Date'].dt.year >= selected_years[0]) & (popularity_df['Album Release Date'].dt.year <= selected_years[1])]
+        fig_nopop = px.scatter(nopop_rs_df, x='Album Release Date', y='Popularity', hover_name='Track Name', 
                          hover_data=["Artist Name(s)", "Album Name", "Artist Genres"], color='Artist Genres', opacity=0.5)
-        fig.update_layout(title={
+        fig_nopop.update_layout(title={
                 'text': "Tracks",
                 'x':0.5,
                 'xanchor': 'center',
             }, xaxis_title='Album Release Date', yaxis_title='Popularity'
         )
-        fig.update_layout(
+        fig_nopop.update_layout(
             hoverlabel=dict(
                 bgcolor="white",
                 font_size=16,
                 font_family="Rockwell"
             )
         )
-        fig.add_annotation(
+        fig_nopop.add_annotation(
             xref='paper', yref='paper',
             x=0, y=-0.2,
             text="*Tracks without 'Popularity' value are set to 0 by default.\nToggle on or off if you want them displayed*",
@@ -250,14 +261,14 @@ def create_graph(selected_years, show_popularity):
             font=dict(size=12, color="grey"),
             align="center"
         )
-        fig.update_layout(
+        fig_nopop.update_layout(
             xaxis=dict(showgrid=False),  
             yaxis=dict(showgrid=False) 
         )
-        fig.update_layout(paper_bgcolor='#b5f5bb')
-        fig.update_layout(plot_bgcolor='white')
+        fig_nopop.update_layout(paper_bgcolor='#b5f5bb')
+        fig_nopop.update_layout(plot_bgcolor='#f0fcf4')
 
-    return fig
+        return fig_nopop
 
 
 
@@ -267,7 +278,7 @@ def create_graph(selected_years, show_popularity):
     Input('category-dropdown', 'value'),
     Input('year-slider-2', 'value'),
 )
-def create_graph(category, selected_years):
+def create_graph_2(category, selected_years):
     fig = {
     "layout": {
         "xaxis": {
@@ -298,9 +309,9 @@ def create_graph(category, selected_years):
         fig = px.histogram(year_rs_df, x="Album Release Date")
         fig.update_layout(title_text='Album Release Date Distribution', xaxis_title='Album Release Date', yaxis_title='Track Duration (s)')
         fig.update_layout(paper_bgcolor='#b5f5bb')
-        fig.update_layout(plot_bgcolor='white')
-        fig.update_layout(
-            xaxis=dict(showgrid=False),  
+        fig.update_layout(plot_bgcolor='#f0fcf4')
+        fig.update_traces(marker_color='#b07205')
+        fig.update_layout(  
             yaxis=dict(showgrid=False) 
         )
         fig.update_layout(title={
@@ -323,7 +334,8 @@ def create_graph(category, selected_years):
 
         fig = px.bar(sorted_genre_counts_rs_df, x='Artist Genres', y='Count', title='Most Popular Genres')
         fig.update_layout(paper_bgcolor='#b5f5bb')
-        fig.update_layout(plot_bgcolor='white')
+        fig.update_layout(plot_bgcolor='#f0fcf4')
+        fig.update_traces(marker_color='#b07205')
         fig.update_layout(
             xaxis=dict(showgrid=False),  
             yaxis=dict(showgrid=False) 
@@ -349,11 +361,6 @@ def create_graph(category, selected_years):
         counts = explicit_rs_df['Explicit'].value_counts()
         fig = px.pie(counts, values=counts, names=counts.index, title='Explicit vs Non-Explicit Track Percentages')
         fig.update_layout(paper_bgcolor='#b5f5bb')
-        fig.update_layout(plot_bgcolor='white')
-        fig.update_layout(
-            xaxis=dict(showgrid=False),  
-            yaxis=dict(showgrid=False) 
-        )
         fig.update_layout(title={
                 'text': "Explicit vs Non-Explicit Track Percentages",
                 'x':0.5,
@@ -370,7 +377,8 @@ def create_graph(category, selected_years):
         track_duration_rs_df = track_duration_df[(track_duration_df['Album Release Date'].dt.year >= selected_years[0]) & (track_duration_df['Album Release Date'].dt.year <= selected_years[1])]
         fig = px.histogram(track_duration_rs_df, x='Track Duration (s)')
         fig.update_layout(paper_bgcolor='#b5f5bb')
-        fig.update_layout(plot_bgcolor='white')
+        fig.update_layout(plot_bgcolor='#f0fcf4')
+        fig.update_traces(marker_color='#b07205')
         fig.update_layout(
             xaxis=dict(showgrid=False),  
             yaxis=dict(showgrid=False) 
@@ -388,11 +396,6 @@ def create_graph(category, selected_years):
         counts = genres_percentage_rs_df['Artist Genres'].value_counts()
         fig = px.pie(counts, values=counts, names=counts.index, title='Distribution of Artist Genres')
         fig.update_layout(paper_bgcolor='#b5f5bb')
-        fig.update_layout(plot_bgcolor='white')
-        fig.update_layout(
-            xaxis=dict(showgrid=False),  
-            yaxis=dict(showgrid=False) 
-        )
         fig.update_layout(title={
                 'text': "Distribution of Artist Genres",
                 'x':0.5,
