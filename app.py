@@ -60,10 +60,13 @@ app.layout = html.Div([
     html.Div([
         html.Nav([
             html.Div([
-                html.H1('Top 10,000 Songs on Spotify Released from 1956-2023', style={'text-align': 'center', 'color': 'black', 'font-family': 'Copperplate'})
+                html.H1('TopSongsInHistory', style={'text-align': 'center', 'color': 'black', 'font-family': 'Copperplate'})
             ], className='container-fluid')
         ], style={'background-color': 'green'})  
     ], className='navbar navbar-default',),
+    html.Div([
+        html.H2('Top 10,000 Songs on Spotify Released from 1956-2023', style={'text-align': 'center', 'color': 'black', 'font-family': 'Copperplate'})
+    ]),
     html.Div([
         html.P('Below is a graph displaying every song based on its popularity and release date.', 
                style={'text-align': 'center', 'color': 'light-blue', 'font-family': 'Garamond', 'font-size': 24})
