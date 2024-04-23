@@ -65,6 +65,11 @@ app.layout = html.Div([
         ], style={'background-color': 'green'})  
     ], className='navbar navbar-default',),
     html.Div([
+        html.P('This site is for people who are very into music but want to know more of what music was popular in the previous couple decades. People can see what music was popular during what times all the way back to the mid-1950s. They can see which genres are the most popular at which times, and how the different genres have evolved in popularity over time. They can also see how other factors such as track duration and explicity have changed over time with the most popular songs.', 
+               style={'text-align': 'center', 'color': 'light-blue', 'font-family': 'Garamond', 'font-size': 24})
+    ]),
+    html.Div(style={'border-top': '3px solid #4CAF50', 'width': '100%', 'margin': '20px 0'}),
+    html.Div([
         html.H2('Top 10,000 Songs on Spotify Released from 1956-2023', style={'text-align': 'center', 'color': 'black', 'font-family': 'Copperplate'})
     ]),
     html.Div([
@@ -259,7 +264,7 @@ def create_graph_1(selected_years, show_popularity):
         fig_nopop.add_annotation(
             xref='paper', yref='paper',
             x=0, y=-0.2,
-            text="*Tracks without 'Popularity' value are set to 0 by default.\nToggle on or off if you want them displayed*",
+            text="*Tracks without 'Popularity' value are set to 0 by default. Toggle on or off above if you want them displayed*",
             showarrow=False,
             font=dict(size=12, color="grey"),
             align="center"
